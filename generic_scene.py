@@ -11,7 +11,7 @@ class GenericScene:
         """ Take an event from the event queue and handle it. """
         print("Info - handle_events in GenericScene has not been overridden.")
 
-    def update(self):
+    def update(self, dt):
         """ Updates and game logic are handled here. For example, changing the position of a sprite. """
         print("Info - update in GenericScene has not been overridden.")
 

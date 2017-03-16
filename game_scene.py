@@ -6,6 +6,7 @@ import pygame.constants
 import constants
 import generic_scene
 import tiles
+import player
 # Standard library
 import random
 
@@ -19,23 +20,44 @@ class GameScene(generic_scene.GenericScene):
         TILESIZE = 64
         self.tile_map, self.tile_group = read_map("map.map", TILESIZE)
 
-    def handle_event(self, event):
-        pass
+        # Create the player
+        self.player = player.Player(self.tile_group)
+        self.player_group = pygame.sprite.Group(self.player)
 
-    def update(self):
-        pass
+    def handle_event(self, event):
+        # Movement
+        # Checking for key down
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                self.player.y_speed = -self.player.speed
+            elif event.key == pygame.K_s:
+                self.player.y_speed = self.player.speed
+            elif event.key == pygame.K_d:
+                self.player.x_speed = self.player.speed
+            elif event.key == pygame.K_a:
+                self.player.x_speed = -self.player.speed
+        # Checking for key release
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_w or event.key == pygame.K_s:
+                self.player.y_speed = 0
+            elif event.key == pygame.K_a or event.key == pygame.K_d:
+                self.player.x_speed = 0
+
+    def update(self, dt):
+        self.player_group.update(dt)
 
     def draw(self, screen):
         screen.fill(constants.BLACK)
         self.tile_group.draw(screen)
+        self.player_group.draw(screen)
 
 
-def read_map(map, TILESIZE):
+def read_map(game_map, TILESIZE):
     """ Takes a file, and creates a tile_map and tile_group from the input. """
     tile_map = []
     tile_group = pygame.sprite.Group()
     # Turn the file into a 2D array
-    with open(map) as map_file:
+    with open(game_map) as map_file:
         lines = map_file.read().splitlines()
         for line in lines:
             line = line.split(' ')

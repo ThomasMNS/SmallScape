@@ -20,7 +20,7 @@ def main():
     screen_width = 1024
     screen_height = 768
     screen = pygame.display.set_mode((screen_width, screen_height))
-    screen_caption = "SmallScape - An RPG by UnderSand"
+    screen_caption = "SmallScape"
     pygame.display.set_caption(screen_caption)
 
     # Set up the main game loop
@@ -29,6 +29,8 @@ def main():
 
     # Main game loop
     while active_scene is not None:
+        dt = clock.tick() / 1000
+
         # Event handling
         for event in pygame.event.get():
             # Game-wide events that should be handled the same, no-matter what the scene is
@@ -39,7 +41,7 @@ def main():
                 active_scene.handle_event(event)
 
         # Process and update game logic, E.g. moving sprites
-        active_scene.update()
+        active_scene.update(dt)
 
         # Draw the frame
         active_scene.draw(screen)
@@ -49,9 +51,6 @@ def main():
 
         # Update tge screen
         pygame.display.flip()
-
-        # Run the game at 60 FPS
-        clock.tick(60)
 
 # Run the game
 main()

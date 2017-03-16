@@ -13,6 +13,8 @@ class Coal(tile.Tile):
         self.image = pygame.image.load('assets/graphics/tiles/coal_texture.png')
         self.rect = self.image.get_rect()
 
+        self.blocks_movement = False
+
 
 class Dirt(tile.Tile):
     def __init__(self):
@@ -20,6 +22,8 @@ class Dirt(tile.Tile):
 
         self.image = pygame.image.load('assets/graphics/tiles/dirt_texture.png')
         self.rect = self.image.get_rect()
+
+        self.blocks_movement = False
 
 
 class Grass(tile.Tile):
@@ -29,6 +33,8 @@ class Grass(tile.Tile):
         self.image = pygame.image.load('assets/graphics/tiles/grass_texture.png')
         self.rect = self.image.get_rect()
 
+        self.blocks_movement = False
+
 
 class Water(tile.Tile):
     def __init__(self):
@@ -36,3 +42,5 @@ class Water(tile.Tile):
 
         self.image = pygame.image.load('assets/graphics/tiles/water_texture.png')
         self.rect = self.image.get_rect()
+
+        self.blocks_movement = True

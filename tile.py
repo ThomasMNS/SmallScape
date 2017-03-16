@@ -7,3 +7,5 @@ class Tile(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
+        self.blocks_movement = True
+

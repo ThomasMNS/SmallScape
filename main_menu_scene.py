@@ -21,7 +21,7 @@ class MainMenu(generic_scene.GenericScene):
             if event.key == pygame.K_SPACE:
                 self.next_scene = game_scene.GameScene()
 
-    def update(self):
+    def update(self, dt):
         pass
 
     def draw(self, screen):
