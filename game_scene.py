@@ -9,6 +9,7 @@ import tiles
 import player
 # Standard library
 import random
+import importlib
 
 
 class GameScene(generic_scene.GenericScene):
@@ -16,12 +17,19 @@ class GameScene(generic_scene.GenericScene):
     def __init__(self):
         super().__init__()
 
-        # Read the map
-        TILESIZE = 64
-        self.tile_map, self.tile_group = read_map("map.map", TILESIZE)
+        self.TILESIZE = 64
+
+        # Load a 2D array containing the map screens that make up the overworld
+        self.overworld = read_overworld_map("maps.overworld")
+        # The screen the player spawns in
+        # Rows / columns / level (zero-indexed)
+        self.current_screen = [1, 0]
+        # Read the map for the current screen
+        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
+            self.overworld[self.current_screen[0]][self.current_screen[1]]), self.TILESIZE)
 
         # Create the player
-        self.player = player.Player(self.tile_group)
+        self.player = player.Player(self.screen_tile_group)
         self.player_group = pygame.sprite.Group(self.player)
 
     def handle_event(self, event):
@@ -46,22 +54,46 @@ class GameScene(generic_scene.GenericScene):
     def update(self, dt):
         self.player_group.update(dt)
 
+        screen_changed = False
+        if self.player.rect.bottom > pygame.display.Info().current_h:
+            self.current_screen[0] += 1
+            self.player.change_position(self.player.rect.x, 0)
+            screen_changed = True
+        elif self.player.rect.top < 0:
+            self.current_screen[0] -= 1
+            self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height)
+            screen_changed = True
+        elif self.player.rect.right > pygame.display.Info().current_w:
+            self.current_screen[1] += 1
+            self.player.change_position(0, self.player.rect.y)
+            screen_changed = True
+        elif self.player.rect.left < 0:
+            self.current_screen[1] -= 1
+            self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
+            screen_changed = True
+        if screen_changed is True:
+            # Read the map for the current screen
+            self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
+            self.overworld[self.current_screen[0]][self.current_screen[1]]), self.TILESIZE)
+            self.player.tile_group = self.screen_tile_group
+
     def draw(self, screen):
         screen.fill(constants.BLACK)
-        self.tile_group.draw(screen)
+        self.screen_tile_group.draw(screen)
         self.player_group.draw(screen)
 
 
-def read_map(game_map, TILESIZE):
+def read_overworld_map(overworld_map):
+    """ Open the overworld map. """
+    overworld = importlib.import_module(overworld_map)
+    return overworld.screens_map
+
+
+def read_screen_map(game_map, TILESIZE):
     """ Takes a file, and creates a tile_map and tile_group from the input. """
-    tile_map = []
     tile_group = pygame.sprite.Group()
-    # Turn the file into a 2D array
-    with open(game_map) as map_file:
-        lines = map_file.read().splitlines()
-        for line in lines:
-            line = line.split(' ')
-            tile_map.append(line)
+    tile_map_mod = importlib.import_module(game_map)
+    tile_map = tile_map_mod.screen.tile_map
 
     # Convert it from an array of letters, to an array of game tile objects at the correct positions
     for row_count in range(len(tile_map)):
@@ -80,30 +112,8 @@ def read_map(game_map, TILESIZE):
             tile_map[row_count][column_count] = tile
             tile_group.add(tile)
 
-    return tile_map, tile_group
-
-
-def generate_map(MAPHEIGHT, MAPWIDTH, TILESIZE):
-    """ Generates a random map fitting certain parameters. """
-    tile_map = []
-    tile_group = pygame.sprite.Group()
-    for row_count in range(MAPHEIGHT):
-        tile_map.append([])
-        for column_count in range(MAPWIDTH):
-            random_number = random.randint(0, 10)
-            if 0 <= random_number <= 4:
-                tile = tiles.Grass()
-            elif 5 <= random_number <= 7:
-                tile = tiles.Water()
-            elif 8 <= random_number <= 9:
-                tile = tiles.Dirt()
-            elif random_number == 10:
-                tile = tiles.Coal()
-
-            tile.rect.x = column_count * TILESIZE
-            tile.rect.y = row_count * TILESIZE
-
-            tile_map[row_count].append(tile)
-            tile_group.add(tile)
+    importlib.reload(tile_map_mod)
 
     return tile_map, tile_group
+
+

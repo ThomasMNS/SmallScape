@@ -24,10 +24,18 @@ class Player(pygame.sprite.Sprite):
         # Movement
         self.x_speed = 0
         self.y_speed = 0
-        self.speed = 80
+        self.speed = 110
 
         # Current tile map
         self.tile_group = tile_group
+
+    def change_position(self, x, y):
+        """ Change the position of the player. """
+        self.real_x = x
+        self.rect.x = x
+
+        self.real_y = y
+        self.rect.y = y
 
     def update(self, dt):
         """ Called once per frame. For updating game logic, E.g. movement. """
