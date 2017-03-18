@@ -6,7 +6,7 @@ import pygame
 
 class Player(pygame.sprite.Sprite):
     """ A sprite representing the player. """
-    def __init__(self, tile_group, x=0, y=0):
+    def __init__(self, tile_group=None, x=0, y=0):
         super().__init__()
 
         # Setting up the sprite
@@ -14,7 +14,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.mast = pygame.mask.from_surface(self.image)
 
-        # Starting position
+        # Starting position (on the screen)
         self.rect.x = x
         self.rect.y = y
 
@@ -28,6 +28,10 @@ class Player(pygame.sprite.Sprite):
 
         # Current tile map
         self.tile_group = tile_group
+
+        # Starting position (in the world)
+        # Rows / columns / depth
+        self.current_screen = [0, 0, 0]
 
     def change_position(self, x, y):
         """ Change the position of the player. """

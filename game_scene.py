@@ -17,25 +17,28 @@ class GameScene(generic_scene.GenericScene):
     def __init__(self):
         super().__init__()
 
+        # Constant representing the size of the tiles in pixels
         self.TILESIZE = 64
 
-        # Load a 2D array containing the map screens that make up the overworld
-        self.overworld = read_overworld_map("maps.overworld")
-        # The screen the player spawns in
-        # Rows / columns / level (zero-indexed)
-        self.current_screen = [1, 0]
-        # Read the map for the current screen
-        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
-            self.overworld[self.current_screen[0]][self.current_screen[1]]), self.TILESIZE)
-
         # Create the player
-        self.player = player.Player(self.screen_tile_group)
+        self.player = player.Player()
         self.player_group = pygame.sprite.Group(self.player)
 
+        # Load a 2D array containing the map screens that make up the overworld
+        self.world = read_overworld_map("maps.world")
+
+        # Read the map for the current screen
+        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
+            self.world[self.player.current_screen[0]][self.player.current_screen[1]][self.player.current_screen[2]]),
+            self.TILESIZE)
+
+        # Send the current screen to the player
+        self.player.tile_group = self.screen_tile_group
+
     def handle_event(self, event):
-        # Movement
         # Checking for key down
         if event.type == pygame.KEYDOWN:
+            # Movement
             if event.key == pygame.K_w:
                 self.player.y_speed = -self.player.speed
             elif event.key == pygame.K_s:
@@ -44,6 +47,17 @@ class GameScene(generic_scene.GenericScene):
                 self.player.x_speed = self.player.speed
             elif event.key == pygame.K_a:
                 self.player.x_speed = -self.player.speed
+            # Depth movement
+            elif event.key == pygame.K_DOWN:
+                if (self.player.current_screen[2] + 1 <=
+                            len(self.world[self.player.current_screen[0]][self.player.current_screen[1]]) - 1):
+                    self.player.current_screen[2] += 1
+                    self.update_screen()
+            elif event.key == pygame.K_UP:
+                if self.player.current_screen[2] - 1 >= 0:
+                    self.player.current_screen[2] -= 1
+                    self.update_screen()
+
         # Checking for key release
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w or event.key == pygame.K_s:
@@ -54,33 +68,34 @@ class GameScene(generic_scene.GenericScene):
     def update(self, dt):
         self.player_group.update(dt)
 
-        screen_changed = False
         if self.player.rect.bottom > pygame.display.Info().current_h:
-            self.current_screen[0] += 1
+            self.player.current_screen[0] += 1
             self.player.change_position(self.player.rect.x, 0)
-            screen_changed = True
+            self.update_screen()
         elif self.player.rect.top < 0:
-            self.current_screen[0] -= 1
+            self.player.current_screen[0] -= 1
             self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height)
-            screen_changed = True
+            self.update_screen()
         elif self.player.rect.right > pygame.display.Info().current_w:
-            self.current_screen[1] += 1
+            self.player.current_screen[1] += 1
             self.player.change_position(0, self.player.rect.y)
-            screen_changed = True
+            self.update_screen()
         elif self.player.rect.left < 0:
-            self.current_screen[1] -= 1
+            self.player.current_screen[1] -= 1
             self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
-            screen_changed = True
-        if screen_changed is True:
-            # Read the map for the current screen
-            self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
-            self.overworld[self.current_screen[0]][self.current_screen[1]]), self.TILESIZE)
-            self.player.tile_group = self.screen_tile_group
+            self.update_screen()
 
     def draw(self, screen):
         screen.fill(constants.BLACK)
         self.screen_tile_group.draw(screen)
         self.player_group.draw(screen)
+
+    def update_screen(self):
+        # Read the map for the current screen
+        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
+            self.world[self.player.current_screen[0]][self.player.current_screen[1]][self.player.current_screen[2]]),
+            self.TILESIZE)
+        self.player.tile_group = self.screen_tile_group
 
 
 def read_overworld_map(overworld_map):

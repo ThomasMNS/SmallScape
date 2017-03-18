@@ -11,6 +11,7 @@ import pygame
 # Game modules
 import main_menu_scene
 
+
 def main():
     """ Initiates Pygame and the main game loop. """
     # Initiate the Pygame modules
