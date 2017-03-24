@@ -11,7 +11,6 @@ import pygame
 # Game modules
 import main_menu_scene
 
-
 def main():
     """ Initiates Pygame and the main game loop. """
     # Initiate the Pygame modules
@@ -52,6 +51,8 @@ def main():
 
         # Update tge screen
         pygame.display.flip()
+
+        pygame.display.set_caption("SmallScape {}".format(clock.get_fps()))
 
 # Run the game
 main()
