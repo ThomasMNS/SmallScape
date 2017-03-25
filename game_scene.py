@@ -106,11 +106,11 @@ class GameScene(generic_scene.GenericScene):
         # The inventory
         # self.player.inventory.draw(screen)
         for tile in self.background_tile_group:
-            screen.blit(tile.image, (tile.rect.x + self.camera.offset[0], tile.rect.y + self.camera.offset[1]))
+            screen.blit(tile.image, (tile.rect.x - self.camera.camera_location[0], tile.rect.y - self.camera.camera_location[1]))
 
         # self.player_group.draw(screen)
         for player in self.player_group:
-            screen.blit(player.image, (player.rect.x + self.camera.offset[0], player.rect.y + self.camera.offset[1]))
+            screen.blit(player.image, (player.rect.x - self.camera.camera_location[0], player.rect.y - self.camera.camera_location[1]))
 
     def update_screen(self):
         # Read the map for the current screen
