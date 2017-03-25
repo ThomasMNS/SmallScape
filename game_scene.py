@@ -71,9 +71,9 @@ class GameScene(generic_scene.GenericScene):
                 self.player.x_speed = 0
 
     def update(self, dt):
-        self.camera.update(dt)
-
         self.player_group.update(dt)
+
+
 
         if self.player.rect.bottom > pygame.display.Info().current_h - 64:
             self.player.current_screen[0] += 1
@@ -92,6 +92,10 @@ class GameScene(generic_scene.GenericScene):
             self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
             self.update_screen()
 
+        print(self.player.rect.x - self.camera.camera_x)
+
+        self.camera.update()
+
     def draw(self, screen):
         # Drawing things in order
         # Black background (should not normally be seen)
@@ -105,12 +109,10 @@ class GameScene(generic_scene.GenericScene):
 
         # The inventory
         # self.player.inventory.draw(screen)
-        for tile in self.background_tile_group:
-            screen.blit(tile.image, (tile.rect.x - self.camera.camera_location[0], tile.rect.y - self.camera.camera_location[1]))
+        self.camera.apply(self.background_tile_group, screen)
 
         # self.player_group.draw(screen)
-        for player in self.player_group:
-            screen.blit(player.image, (player.rect.x - self.camera.camera_location[0], player.rect.y - self.camera.camera_location[1]))
+        self.camera.apply(self.player_group, screen)
 
     def update_screen(self):
         # Read the map for the current screen

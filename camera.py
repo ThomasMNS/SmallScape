@@ -1,43 +1,46 @@
-""" Defines a single class, Camera, that holds the state of the offset for scrolling. """
+""" Defines a single class, Camera, that handles scrolling. """
 
 import pygame
 
 
 class Camera:
     """ Holds information about the 'camera', that controls scrolling. """
-    def __init__(self, tracking):
-        self.WIDTH = 1024
-        self.HEIGHT = 768
+    def __init__(self, tracking, desired_x=None, desired_y=None):
 
-        l = tracking.rect.left
-        t = tracking.rect.top
-
-        self.real_camera_location = [0, 0, self.WIDTH, self.HEIGHT]
-        self.camera_location = [0, 0, self.WIDTH, self.HEIGHT]
-
-        # (-1 + (WIDTH / 2), -t + (HEIGHT / 2), WIDTH, HEIGHT)
-
+        # The object that is being tracked (must have a Rect())
         self.tracking = tracking
 
-        self.x_speed = self.tracking.x_speed
-        self.y_speed = self.tracking.y_speed
+        # The desired location of the tracked sprite on the screen. If not supplied, assumed to be
+        self.desired_x = desired_x
+        self.desired_y = desired_y
 
-    def update(self, dt):
-        self.x_speed = self.tracking.x_speed
-        self.y_speed = self.tracking.y_speed
+        # Get the screen width and size. This will be used when determining what is and isn't visible on the screen
+        self.screen_width = pygame.display.Info().current_w
+        self.screen_height = pygame.display.Info().current_h
 
-        self.real_camera_location[0] += self.x_speed * dt
-        self.real_camera_location[1] += self.y_speed * dt
+        # The 'location' of the camera. How far it has moved from the starting position of 0, 0 while following the
+        # target
+        # This value is subtracted from all sprites to give the illusion of movement
+        self.camera_x = 0
+        self.camera_y = 0
 
-        self.camera_location[0] = round(self.real_camera_location[0])
-        self.camera_location[1] = round(self.real_camera_location[1])
+        self.update()
 
-        print(self.camera_location)
+    def update(self):
+        # Calculate how far right the camera has to move to get the tracked sprite in the desired position
+        if self.desired_x is not None:
+            self.camera_x = self.tracking.rect.centerx - self.desired_x
+        # If no desired_x is input, assume middle of screen
+        else:
+            self.camera_x = self.tracking.rect.x - (self.screen_width / 2)
 
+        # Calculate how far down the camera has to move to get the tracked sprite in the desired position
+        if self.desired_y is not None:
+            self.camera_y = self.tracking.rect.centery - self.desired_y
+        # If no desired_y is input, assume middle of screen
+        else:
+            self.camera_y = self.tracking.rect.y - (self.screen_height / 2)
 
-class ScrollingGroup(pygame.sprite.Group):
-    def __init__(self):
-        super().__init__()
-
-    def update_scroll(self, x_speed, y_speed):
-        pass
+    def apply(self, group, screen):
+        for e in group:
+            screen.blit(e.image, (e.rect.x - self.camera_x, e.rect.y - self.camera_y))

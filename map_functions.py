@@ -40,9 +40,7 @@ def read_screen_map(game_map, TILESIZE):
                         tile = tiles.Coal()
 
                     tile.rect.x = column_count * TILESIZE
-                    tile.real_x = tile.rect.x
                     tile.rect.y = row_count * TILESIZE
-                    tile.real_y = tile.rect.y
                     background_tile_group.add(tile)
 
                 elif depth_count == 1:
@@ -54,9 +52,7 @@ def read_screen_map(game_map, TILESIZE):
                         tile = tiles.Key()
 
                     tile.rect.x = column_count * TILESIZE
-                    tile.real_x = tile.rect.x
                     tile.rect.y = row_count * TILESIZE
-                    tile.real_y = tile.rect.y
                     item_tile_group.add(tile)
 
     return background_tile_group, item_tile_group

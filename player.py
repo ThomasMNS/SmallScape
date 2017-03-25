@@ -17,11 +17,11 @@ class Player(pygame.sprite.Sprite):
         self.game_scene = game_scene
 
         # Starting position (on the screen)
-        self.rect.x = 500
-        self.rect.y = 500
+        self.rect.x = 300
+        self.rect.y = 300
 
-        self.real_x = 500
-        self.real_y = 500
+        self.real_x = 300
+        self.real_y = 300
 
         # Movement
         self.x_speed = 0
