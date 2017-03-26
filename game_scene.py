@@ -20,19 +20,21 @@ class GameScene(generic_scene.GenericScene):
         super().__init__()
 
         # Constant representing the size of the tiles in pixels
-        self.TILESIZE = 64
+        self.tile_size = 64
+
+        # Load a 2D array containing the map screens that make up the overworld
+        self.world = map_functions.read_chunks_map("maps.chunks")
+
+        self.background_tile_group = pygame.sprite.Group()
+        self.item_tile_group = pygame.sprite.Group()
 
         # Create the player
         self.player = player.Player(self)
         self.player_group = pygame.sprite.Group(self.player)
 
-        # Load a 2D array containing the map screens that make up the overworld
-        self.world = map_functions.read_overworld_map("maps.world")
-
         # Read the map for the current screen
-        self.background_tile_group, self.item_tile_group = map_functions.read_screen_map("maps.{}".format(
-            self.world[self.player.current_screen[0]][self.player.current_screen[1]][self.player.current_screen[2]]),
-            self.TILESIZE)
+        self.background_tile_group, self.item_tile_group = map_functions.read_chunk(self.player.starting_position[0],
+            self.tile_size, self.world, self.background_tile_group, self.item_tile_group)
 
         # Send the current screen to the player
         self.player.background_group = self.background_tile_group
@@ -73,26 +75,22 @@ class GameScene(generic_scene.GenericScene):
     def update(self, dt):
         self.player_group.update(dt)
 
-
-
-        if self.player.rect.bottom > pygame.display.Info().current_h - 64:
-            self.player.current_screen[0] += 1
-            self.player.change_position(self.player.rect.x, 0)
-            self.update_screen()
-        elif self.player.rect.top < 0:
-            self.player.current_screen[0] -= 1
-            self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height - 64)
-            self.update_screen()
-        elif self.player.rect.right > pygame.display.Info().current_w:
-            self.player.current_screen[1] += 1
-            self.player.change_position(0, self.player.rect.y)
-            self.update_screen()
-        elif self.player.rect.left < 0:
-            self.player.current_screen[1] -= 1
-            self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
-            self.update_screen()
-
-        print(self.player.rect.x - self.camera.camera_x)
+        # if self.player.rect.bottom > pygame.display.Info().current_h - 64:
+        #     self.player.current_screen[0] += 1
+        #     self.player.change_position(self.player.rect.x, 0)
+        #     self.update_screen()
+        # elif self.player.rect.top < 0:
+        #     self.player.current_screen[0] -= 1
+        #     self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height - 64)
+        #     self.update_screen()
+        # elif self.player.rect.right > pygame.display.Info().current_w:
+        #     self.player.current_screen[1] += 1
+        #     self.player.change_position(0, self.player.rect.y)
+        #     self.update_screen()
+        # elif self.player.rect.left < 0:
+        #     self.player.current_screen[1] -= 1
+        #     self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
+        #     self.update_screen()
 
         self.camera.update()
 

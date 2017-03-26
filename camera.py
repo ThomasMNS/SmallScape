@@ -44,3 +44,5 @@ class Camera:
     def apply(self, group, screen):
         for e in group:
             screen.blit(e.image, (e.rect.x - self.camera_x, e.rect.y - self.camera_y))
+
+

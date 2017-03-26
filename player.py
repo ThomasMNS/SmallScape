@@ -2,6 +2,7 @@
 
 # Pygame
 import pygame
+import map_functions
 
 
 class Player(pygame.sprite.Sprite):
@@ -16,27 +17,36 @@ class Player(pygame.sprite.Sprite):
 
         self.game_scene = game_scene
 
-        # Starting position (on the screen)
-        self.rect.x = 300
-        self.rect.y = 300
+        # Starting position in the world (relative)
+        # [Chunk ID, Tile Column, Tile Row]
+        self.starting_position = [1, 31, 31]
+        print("DEBUG: Input starting position - " + str(self.starting_position))
 
-        self.real_x = 300
-        self.real_y = 300
+        # Convert this to an absolute world position in pixels
+        starting_position_absolute = map_functions.within_chunk_to_world(self.starting_position, self.game_scene.world)
+
+        print("DEBUG: Starting position absolute - " + str(starting_position_absolute))
+
+        # Position our rect using this value
+        self.rect.x = starting_position_absolute[0]
+        self.rect.y = starting_position_absolute[1]
+
+        self.real_x = starting_position_absolute[0]
+        self.real_y = starting_position_absolute[1]
+
+        # Find the position of the chunk that the player starts in
+        self.starting_chunk = map_functions.chunk_id_to_chunk_map(self.starting_position[0], self.game_scene.world)
 
         # Movement
         self.x_speed = 0
         self.y_speed = 0
-        self.speed = 110
+        self.speed = 120
 
         # Current tile map
         self.background_group = background_group
 
         # Objects in the screen
         self.item_group = item_group
-
-        # Starting position (in the world)
-        # Rows / columns / depth
-        self.current_screen = [0, 0, 0]
 
         # Inventory
         self.inventory_size = 10
