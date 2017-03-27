@@ -7,6 +7,8 @@ import constants
 import generic_scene
 import tiles
 import player
+import map_functions
+import camera
 # Standard library
 import random
 import importlib
@@ -18,22 +20,29 @@ class GameScene(generic_scene.GenericScene):
         super().__init__()
 
         # Constant representing the size of the tiles in pixels
-        self.TILESIZE = 64
-
-        # Create the player
-        self.player = player.Player()
-        self.player_group = pygame.sprite.Group(self.player)
+        self.tile_size = 64
 
         # Load a 2D array containing the map screens that make up the overworld
-        self.world = read_overworld_map("maps.world")
+        self.world = map_functions.read_chunks_map("maps.chunks")
+
+        self.background_tile_group = pygame.sprite.Group()
+        self.item_tile_group = pygame.sprite.Group()
+
+        # Create the player
+        self.player = player.Player(self)
+        self.player_group = pygame.sprite.Group(self.player)
+
+        self.camera = camera.Camera(self.player)
 
         # Read the map for the current screen
-        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
-            self.world[self.player.current_screen[0]][self.player.current_screen[1]][self.player.current_screen[2]]),
-            self.TILESIZE)
+        self.background_tile_group, self.item_tile_group = map_functions.read_chunk(self.player.starting_position[0],
+            self.tile_size, self.world, self.background_tile_group, self.item_tile_group, self.camera.loaded_chunks)
+
+        print(self.camera.loaded_chunks)
 
         # Send the current screen to the player
-        self.player.tile_group = self.screen_tile_group
+        self.player.background_group = self.background_tile_group
+        self.player.item_group = self.item_tile_group
 
     def handle_event(self, event):
         # Checking for key down
@@ -68,67 +77,55 @@ class GameScene(generic_scene.GenericScene):
     def update(self, dt):
         self.player_group.update(dt)
 
-        if self.player.rect.bottom > pygame.display.Info().current_h:
-            self.player.current_screen[0] += 1
-            self.player.change_position(self.player.rect.x, 0)
-            self.update_screen()
-        elif self.player.rect.top < 0:
-            self.player.current_screen[0] -= 1
-            self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height)
-            self.update_screen()
-        elif self.player.rect.right > pygame.display.Info().current_w:
-            self.player.current_screen[1] += 1
-            self.player.change_position(0, self.player.rect.y)
-            self.update_screen()
-        elif self.player.rect.left < 0:
-            self.player.current_screen[1] -= 1
-            self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
-            self.update_screen()
+        # if self.player.rect.bottom > pygame.display.Info().current_h - 64:
+        #     self.player.current_screen[0] += 1
+        #     self.player.change_position(self.player.rect.x, 0)
+        #     self.update_screen()
+        # elif self.player.rect.top < 0:
+        #     self.player.current_screen[0] -= 1
+        #     self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height - 64)
+        #     self.update_screen()
+        # elif self.player.rect.right > pygame.display.Info().current_w:
+        #     self.player.current_screen[1] += 1
+        #     self.player.change_position(0, self.player.rect.y)
+        #     self.update_screen()
+        # elif self.player.rect.left < 0:
+        #     self.player.current_screen[1] -= 1
+        #     self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
+        #     self.update_screen()
+
+        self.camera.update()
 
     def draw(self, screen):
+        # Drawing things in order
+        # Black background (should not normally be seen)
         screen.fill(constants.BLACK)
-        self.screen_tile_group.draw(screen)
-        self.player_group.draw(screen)
+        # Background tiles, E.g. grass
+        # self.background_tile_group.draw(screen)
+
+        # Foreground tiles, E.g. trees, obtainable items
+        # self.item_tile_group.draw(screen)
+        # The player
+
+        # The inventory
+        # self.player.inventory.draw(screen)
+        self.camera.apply(self.background_tile_group, screen)
+
+        # self.player_group.draw(screen)
+        self.camera.apply(self.player_group, screen)
 
     def update_screen(self):
         # Read the map for the current screen
-        self.screen_tile_map, self.screen_tile_group = read_screen_map("maps.{}".format(
+        self.background_tile_group, self.item_tile_group = map_functions.read_screen_map("maps.{}".format(
             self.world[self.player.current_screen[0]][self.player.current_screen[1]][self.player.current_screen[2]]),
             self.TILESIZE)
-        self.player.tile_group = self.screen_tile_group
+        self.player.background_group = self.background_tile_group
+        self.player.item_group = self.item_tile_group
+
+    def add_message(self, message):
+        self.messages.append(message)
 
 
-def read_overworld_map(overworld_map):
-    """ Open the overworld map. """
-    overworld = importlib.import_module(overworld_map)
-    return overworld.screens_map
 
-
-def read_screen_map(game_map, TILESIZE):
-    """ Takes a file, and creates a tile_map and tile_group from the input. """
-    tile_group = pygame.sprite.Group()
-    tile_map_mod = importlib.import_module(game_map)
-    tile_map = tile_map_mod.screen.tile_map
-
-    # Convert it from an array of letters, to an array of game tile objects at the correct positions
-    for row_count in range(len(tile_map)):
-        for column_count in range(len(tile_map[row_count])):
-            if tile_map[row_count][column_count] == "G":
-                tile = tiles.Grass()
-            elif tile_map[row_count][column_count] == "W":
-                tile = tiles.Water()
-            elif tile_map[row_count][column_count] == "D":
-                tile = tiles.Dirt()
-            elif tile_map[row_count][column_count] == "C":
-                tile = tiles.Coal()
-
-            tile.rect.x = column_count * TILESIZE
-            tile.rect.y = row_count * TILESIZE
-            tile_map[row_count][column_count] = tile
-            tile_group.add(tile)
-
-    importlib.reload(tile_map_mod)
-
-    return tile_map, tile_group
 
 
