@@ -14,12 +14,15 @@ def read_chunks_map(chunks_map):
     return chunks.chunks_map
 
 
-def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_group):
+def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_group, loaded_chunks):
     """ Takes a chunk module, and creates sprites from the tilemap it contains, with the sprites in the
     correct positions. """
 
     chunk_height = 2048
     chunk_width = 2048
+
+    # Create a sprite group for keeping track of the tiles in this chunk so they can be deleted
+    chunk_group = pygame.sprite.Group()
 
     chunk_module = "maps.{}".format(chunk)
 
@@ -51,6 +54,7 @@ def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_gr
                     tile.rect.x = column_count * tile_size + chunk_location_x_offset
                     tile.rect.y = row_count * tile_size + chunk_location_y_offset
                     background_tile_group.add(tile)
+                    chunk_group.add(tile)
 
                 elif depth_count == 1:
                     if tile_map[row_count][column_count][depth_count] == "B":
@@ -63,6 +67,9 @@ def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_gr
                     tile.rect.x = column_count * tile_size + chunk_location_x_offset
                     tile.rect.y = row_count * tile_size + chunk_location_y_offset
                     item_tile_group.add(tile)
+                    chunk_group.add(tile)
+
+    loaded_chunks[int(chunk)] = chunk_group
 
     return background_tile_group, item_tile_group
 
@@ -87,13 +94,10 @@ def within_chunk_to_world(within_chunk_location, chunks_map):
     tile_size = 64
 
     chunk_location = chunk_id_to_chunk_map(within_chunk_location[0], chunks_map)
-    print("DEBUG: Chunk location - " + str(chunk_location))
 
     # Turn the chunk location in to an absolute world location in pixels
     chunk_location_absolute = [chunk_location[1] * chunk_width + within_chunk_location[1] * tile_size,
                                chunk_location[2] * chunk_height + within_chunk_location[2] * tile_size]
-
-    print("DEBUG: Chunk location absolute - " + str(chunk_location_absolute))
 
     return chunk_location_absolute
 

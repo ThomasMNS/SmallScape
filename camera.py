@@ -24,6 +24,8 @@ class Camera:
         self.camera_x = 0
         self.camera_y = 0
 
+        self.loaded_chunks = {}
+
         self.update()
 
     def update(self):

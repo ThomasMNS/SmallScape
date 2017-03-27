@@ -20,12 +20,9 @@ class Player(pygame.sprite.Sprite):
         # Starting position in the world (relative)
         # [Chunk ID, Tile Column, Tile Row]
         self.starting_position = [1, 31, 31]
-        print("DEBUG: Input starting position - " + str(self.starting_position))
 
         # Convert this to an absolute world position in pixels
         starting_position_absolute = map_functions.within_chunk_to_world(self.starting_position, self.game_scene.world)
-
-        print("DEBUG: Starting position absolute - " + str(starting_position_absolute))
 
         # Position our rect using this value
         self.rect.x = starting_position_absolute[0]

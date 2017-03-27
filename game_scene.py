@@ -32,15 +32,17 @@ class GameScene(generic_scene.GenericScene):
         self.player = player.Player(self)
         self.player_group = pygame.sprite.Group(self.player)
 
+        self.camera = camera.Camera(self.player)
+
         # Read the map for the current screen
         self.background_tile_group, self.item_tile_group = map_functions.read_chunk(self.player.starting_position[0],
-            self.tile_size, self.world, self.background_tile_group, self.item_tile_group)
+            self.tile_size, self.world, self.background_tile_group, self.item_tile_group, self.camera.loaded_chunks)
+
+        print(self.camera.loaded_chunks)
 
         # Send the current screen to the player
         self.player.background_group = self.background_tile_group
         self.player.item_group = self.item_tile_group
-
-        self.camera = camera.Camera(self.player)
 
     def handle_event(self, event):
         # Checking for key down
