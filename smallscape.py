@@ -1,7 +1,7 @@
 """ The main function for SmallScape. Initiates the Pygame window, plays title music and runs the main game loop. """
 
 # SmallScape - a top-down RPG
-# Thomas Burke - thomasmnscom
+# Thomas Burke - thomasmns.com
 # 11/03/2017
 # V0.1 (dev) - 11/03/2017
 
@@ -10,6 +10,7 @@
 import pygame
 # Game modules
 import main_menu_scene
+
 
 def main():
     """ Initiates Pygame and the main game loop. """
@@ -29,7 +30,8 @@ def main():
 
     # Main game loop
     while active_scene is not None:
-        dt = clock.tick() / 1000
+        # tick_busy_loop for greater accuracy
+        dt = clock.tick_busy_loop() / 1000
 
         # Event handling
         for event in pygame.event.get():
@@ -52,6 +54,7 @@ def main():
         # Update tge screen
         pygame.display.flip()
 
+        # DEBUG - Display FPS in caption
         pygame.display.set_caption("SmallScape {}".format(clock.get_fps()))
 
 # Run the game

@@ -37,7 +37,7 @@ class Player(pygame.sprite.Sprite):
         # Movement
         self.x_speed = 0
         self.y_speed = 0
-        self.speed = 120
+        self.speed = 130
 
         # Current tile map
         self.background_group = background_group

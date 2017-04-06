@@ -15,32 +15,48 @@ def read_chunks_map(chunks_map):
 
 
 def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_group, loaded_chunks):
-    """ Takes a chunk module, and creates sprites from the tilemap it contains, with the sprites in the
-    correct positions. """
+    """ Takes a chunk module, and creates sprites from the tilemap it contains. These are returned
+    as a background_tile group and an item_tile group. This function also creates a chunk_surface
+    so that only one surface is needed to draw the background, rather than hundreds. """
 
+    # Size of the chunk in pixels
     chunk_height = 2048
     chunk_width = 2048
 
-    # Create a sprite group for keeping track of the tiles in this chunk so they can be deleted
+    # Create a surface large enough to draw all the tiles to. This is done as a sprite to easily associate a
+    # rect with it.
+    # This is done so that only one blit is needed, and dramatically increases FPS.
+    chunk_surface = pygame.sprite.Sprite()
+    chunk_surface.image = pygame.Surface((chunk_height, chunk_width))
+    chunk_surface.rect = chunk_surface.image.get_rect()
+
+    # Create a sprite group for keeping track of the tiles in this chunk so they can be deleted e.g. when
+    # the player moves out of range
     chunk_group = pygame.sprite.Group()
 
+    # Create a string with the name of the module to be loaded. E.g. "maps.1"
     chunk_module = "maps.{}".format(chunk)
 
-    # Open the map module, set tile_map to the 3D tilemap array
+    # Open the map module using this string, set tile_map to the 3D tilemap array in this module
     tile_map_mod = importlib.import_module(chunk_module)
     tile_map = tile_map_mod.screen.tile_map
 
     # Find the chunk's position in the wider chunk map
     chunk_location = chunk_id_to_chunk_map(int(chunk), chunks_map)
 
+    # Place the chunk in the correct location relative to other chunks
     chunk_location_x_offset = chunk_location[0] * chunk_width
     chunk_location_y_offset = chunk_location[1] * chunk_height
+    chunk_surface.rect.x = chunk_location_x_offset
+    chunk_surface.rect.y = chunk_location_y_offset
 
-    # Convert it from an array of letters, to an array of game tile objects at the correct positions
-    # The tiles are positioned at their actual position in the world, not relative to the screen
+    # Take the tile map (an array of letters). Convert these firstly to sprites with their rects set to the correct
+    # locations and add them to the correct sprite group (background or item). Also take all background tiles
+    # and blit them to the chunk_surface sprite, which will be used to draw them.
     for row_count in range(len(tile_map)):
         for column_count in range(len(tile_map[row_count])):
             for depth_count in range(len(tile_map[row_count][column_count])):
+                # Background tiles
                 if depth_count == 0:
                     if tile_map[row_count][column_count][depth_count] == "G":
                         tile = tiles.Grass()
@@ -55,7 +71,9 @@ def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_gr
                     tile.rect.y = row_count * tile_size + chunk_location_y_offset
                     background_tile_group.add(tile)
                     chunk_group.add(tile)
+                    chunk_surface.image.blit(tile.image, (column_count * tile_size, row_count * tile_size))
 
+                # Item tiles
                 elif depth_count == 1:
                     if tile_map[row_count][column_count][depth_count] == "B":
                         tile = tiles.Bush()
@@ -69,9 +87,10 @@ def read_chunk(chunk, tile_size, chunks_map, background_tile_group, item_tile_gr
                     item_tile_group.add(tile)
                     chunk_group.add(tile)
 
-    loaded_chunks[int(chunk)] = chunk_group
+    # TO-DO - Camera draw function only accepts sprite groups, so make one
+    chunk_surface = pygame.sprite.Group(chunk_surface)
 
-    return background_tile_group, item_tile_group
+    return chunk_surface, background_tile_group, item_tile_group
 
 
 def chunk_id_to_chunk_map(within_chunk_location, chunks_map):

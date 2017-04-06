@@ -1,4 +1,4 @@
-""" A module containing a single class that defines the main menu of the game. """
+""" A module containing a single class, GameScene(), that defines the main menu of the game. """
 
 # Pygame
 import pygame.constants
@@ -22,25 +22,31 @@ class GameScene(generic_scene.GenericScene):
         # Constant representing the size of the tiles in pixels
         self.tile_size = 64
 
-        # Load a 2D array containing the map screens that make up the overworld
+        # Load a 3D array containing the names and positions of chunks that make up the game world
         self.world = map_functions.read_chunks_map("maps.chunks")
-
-        self.background_tile_group = pygame.sprite.Group()
-        self.item_tile_group = pygame.sprite.Group()
 
         # Create the player
         self.player = player.Player(self)
         self.player_group = pygame.sprite.Group(self.player)
 
+        # Create the camera, and have it follow the player
         self.camera = camera.Camera(self.player)
 
-        # Read the map for the current screen
-        self.background_tile_group, self.item_tile_group = map_functions.read_chunk(self.player.starting_position[0],
-            self.tile_size, self.world, self.background_tile_group, self.item_tile_group, self.camera.loaded_chunks)
+        # Groups to hold the sprites from currently loaded chunks. These are passed to the player object which
+        # handles much of the logic
+        # Background sprites e.g. grass, water. This group is not used to draw the tiles, rather
+        # map_function.read_chunk creates a single large
+        self.background_tile_group = pygame.sprite.Group()
+        # Item tiles, e.g. bushes. These are drawn above the background tiles
+        self.item_tile_group = pygame.sprite.Group()
 
-        print(self.camera.loaded_chunks)
+        # Read the chunk that the player is standing in
+        # self.player.starting_position[0] is a chunk ID
+        self.chunk_surface, self.background_tile_group, self.item_tile_group = map_functions.read_chunk(
+            self.player.starting_position[0], self.tile_size, self.world, self.background_tile_group,
+            self.item_tile_group, self.camera.loaded_chunks)
 
-        # Send the current screen to the player
+        # Send information about the currently loaded chunk to the player
         self.player.background_group = self.background_tile_group
         self.player.item_group = self.item_tile_group
 
@@ -76,42 +82,18 @@ class GameScene(generic_scene.GenericScene):
 
     def update(self, dt):
         self.player_group.update(dt)
-
-        # if self.player.rect.bottom > pygame.display.Info().current_h - 64:
-        #     self.player.current_screen[0] += 1
-        #     self.player.change_position(self.player.rect.x, 0)
-        #     self.update_screen()
-        # elif self.player.rect.top < 0:
-        #     self.player.current_screen[0] -= 1
-        #     self.player.change_position(self.player.rect.x, pygame.display.Info().current_h - self.player.rect.height - 64)
-        #     self.update_screen()
-        # elif self.player.rect.right > pygame.display.Info().current_w:
-        #     self.player.current_screen[1] += 1
-        #     self.player.change_position(0, self.player.rect.y)
-        #     self.update_screen()
-        # elif self.player.rect.left < 0:
-        #     self.player.current_screen[1] -= 1
-        #     self.player.change_position(pygame.display.Info().current_w - self.player.rect.width, self.player.rect.y)
-        #     self.update_screen()
-
         self.camera.update()
 
     def draw(self, screen):
         # Drawing things in order
         # Black background (should not normally be seen)
         screen.fill(constants.BLACK)
-        # Background tiles, E.g. grass
-        # self.background_tile_group.draw(screen)
 
-        # Foreground tiles, E.g. trees, obtainable items
-        # self.item_tile_group.draw(screen)
-        # The player
-
-        # The inventory
+        # DEBUG - The inventory (to-do)
         # self.player.inventory.draw(screen)
-        self.camera.apply(self.background_tile_group, screen)
 
-        # self.player_group.draw(screen)
+        self.camera.apply(self.chunk_surface, screen)
+        self.camera.apply(self.item_tile_group, screen)
         self.camera.apply(self.player_group, screen)
 
     def update_screen(self):
